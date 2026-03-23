@@ -104,21 +104,29 @@ public class ExtentReportManager implements ITestListener
 	{
 		extent.flush();
 		
-		
-		// Optional: Auto-opens the report in browser after execution
-        
-        String pathOfExtentReport = System.getProperty("user.dir")+"\\reports\\"+repName;
+		String pathOfExtentReport = System.getProperty("user.dir")+"\\reports\\"+repName;
         File extentReport = new File(pathOfExtentReport);
         
-        try 
+        // --- NEW CI/CD HEADLESS LOGIC ---
+        // Check if we are running on GitHub Actions
+        boolean isCI = System.getenv("GITHUB_ACTIONS") != null;
+        
+        // Only try to auto-open the report if we are NOT on GitHub
+        if (!isCI) 
         {
-            Desktop.getDesktop().browse(extentReport.toURI());
+            try 
+            {
+                Desktop.getDesktop().browse(extentReport.toURI());
+            } 
+            
+            catch (IOException e) 
+            {
+                e.printStackTrace();
+            }
         } 
-        
-        catch (IOException e) 
+        else 
         {
-            e.printStackTrace();
+        	System.out.println("Running on GitHub Actions. Skipping auto-open of Extent Report to avoid X11 Display error.");
         }
-        
 	}
 }
