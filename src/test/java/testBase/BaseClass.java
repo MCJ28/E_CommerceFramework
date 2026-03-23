@@ -98,7 +98,8 @@ public class BaseClass
 			
 			// --- NEW HEADLESS LOGIC ---
 			// Check if we are running inside GitHub Actions
-			boolean isCI = System.getenv("GITHUB_ACTIONS") != null;
+			// Check if we are running inside GitHub Actions OR Jenkins
+			boolean isCI = System.getenv("GITHUB_ACTIONS") != null || System.getenv("JENKINS_HOME") != null;
 			
 			switch(browserName.toLowerCase())
 			{

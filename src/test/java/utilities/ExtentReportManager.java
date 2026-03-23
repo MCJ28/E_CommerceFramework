@@ -108,8 +108,8 @@ public class ExtentReportManager implements ITestListener
         File extentReport = new File(pathOfExtentReport);
         
         // --- NEW CI/CD HEADLESS LOGIC ---
-        // Check if we are running on GitHub Actions
-        boolean isCI = System.getenv("GITHUB_ACTIONS") != null;
+        // Check if we are running inside GitHub Actions OR Jenkins
+        boolean isCI = System.getenv("GITHUB_ACTIONS") != null || System.getenv("JENKINS_HOME") != null;
         
         // Only try to auto-open the report if we are NOT on GitHub
         if (!isCI) 
