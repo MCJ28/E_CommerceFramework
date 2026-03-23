@@ -29,3 +29,12 @@ jobs:
     # 3. Execute the Maven command (Defaults to master.xml based on your pom.xml)
     - name: Run Tests with Maven
       run: mvn clean test
+
+
+    # 4. Save the Extent Reports so you can download them!
+    - name: Upload Extent Reports
+      uses: actions/upload-artifact@v4
+      if: always() 
+      with:
+        name: Automation-Extent-Reports
+        path: reports/  
