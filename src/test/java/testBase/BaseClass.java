@@ -16,8 +16,11 @@ import org.openqa.selenium.Platform;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -29,29 +32,25 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 public class BaseClass 
 {
 	public static WebDriver driver;
-	public Logger logger; // Added Logger variable
-	public Properties p; // Properties variable
+	public Logger logger; 
+	public Properties p; 
 	
 	@Parameters({"os", "browser"})
 	@BeforeClass(groups = {"Sanity", "Regression", "Master", "DataDriven"}) 
 	public void setUp(String operatingSystem, String browserName) throws IOException
 	{
 		// Loading config.properties file
-		FileReader file = new FileReader("./src/test/resources/config.properties"); 	// . is the Project Location
+		FileReader file = new FileReader("./src/test/resources/config.properties");
 		p = new Properties();
 		p.load(file); 
-				
 				
 		// Initializing the logger for the current class
 		logger = LogManager.getLogger(this.getClass());
 		
 		logger.info("**** Starting Browser Setup ****");  
 		
-		
-		
-		// NEW LOGIC: Check execution environment (Local vs Remote)
-				
-		String executionEnv = p.getProperty("execution_env", "local"); // Defaults to local if missing
+		// Check execution environment (Local vs Remote)
+		String executionEnv = p.getProperty("execution_env", "local"); 
 		
 		if(executionEnv.equalsIgnoreCase("remote"))
 		{
@@ -59,33 +58,26 @@ public class BaseClass
 			
 			DesiredCapabilities capabilities = new DesiredCapabilities();
 			
-			
 			// 1. Determine OS for Remote Execution
-			
 			if(operatingSystem.equalsIgnoreCase("windows")) 
 			{
 				capabilities.setPlatform(Platform.WIN11); 
 			} 
-			
 			else if (operatingSystem.equalsIgnoreCase("mac")) 
 			{
 				capabilities.setPlatform(Platform.MAC);
 			} 
-			
 			else if (operatingSystem.equalsIgnoreCase("linux")) 
 			{
-				capabilities.setPlatform(Platform.LINUX); // Docker containers run on Linux
+				capabilities.setPlatform(Platform.LINUX); 
 			} 
-			
 			else 
 			{
 				logger.error("No matching OS identified for Remote Execution");
 				return;
 			}
 			
-			
 			// 2. Determine Browser for Remote Execution
-			
 			switch(browserName.toLowerCase()) 
 			{
 				case "chrome": capabilities.setBrowserName("chrome"); break;
@@ -94,9 +86,7 @@ public class BaseClass
 				default: logger.error("No matching browser identified for Remote Execution"); return; 
 			}
 			
-			
 			// 3. Initialize RemoteWebDriver
-			
 			driver = new RemoteWebDriver(new URL(p.getProperty("gridURL")), capabilities);
 		}
 		
@@ -104,13 +94,29 @@ public class BaseClass
 		{
 			logger.info("Executing on Local Environment...");
 			
-			// Local execution logic
+			
+			
+			// --- NEW HEADLESS LOGIC ---
+			// Check if we are running inside GitHub Actions
+			boolean isCI = System.getenv("GITHUB_ACTIONS") != null;
 			
 			switch(browserName.toLowerCase())
 			{
-				case "chrome" : driver=new ChromeDriver(); break; 
-				case "edge" : driver=new EdgeDriver(); break;
-				case "firefox" : driver=new FirefoxDriver(); break;
+				case "chrome" : 
+					ChromeOptions chromeOptions = new ChromeOptions();
+					if(isCI) chromeOptions.addArguments("--headless=new"); // Runs invisibly in CI
+					driver=new ChromeDriver(chromeOptions); 
+					break; 
+				case "edge" : 
+					EdgeOptions edgeOptions = new EdgeOptions();
+					if(isCI) edgeOptions.addArguments("--headless=new");
+					driver=new EdgeDriver(edgeOptions); 
+					break;
+				case "firefox" : 
+					FirefoxOptions firefoxOptions = new FirefoxOptions();
+					if(isCI) firefoxOptions.addArguments("--headless");
+					driver=new FirefoxDriver(firefoxOptions); 
+					break;
 				default: logger.error("Invalid browser name provided!"); return; 
 			} 
 		}
@@ -122,7 +128,6 @@ public class BaseClass
 		}
 		
 		// standard setup
-
 		driver.manage().window().maximize();
 		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));  
 		
@@ -130,26 +135,19 @@ public class BaseClass
 		logger.info("Launched " + browserName + " successfully."); 
 	}
 	
-	
-	
 	public String randomName() 
 	{
-		// Generates a 5-letter string entirely in lowercase
 		String generatedString = RandomStringUtils.randomAlphabetic(5).toLowerCase();
-		
-		// Capitalizes the first letter and attaches the rest
 		return generatedString.substring(0, 1).toUpperCase() + generatedString.substring(1); 
 	}
 	
 	public String randomPassword() 
 	{
-		// Generates specific types to GUARANTEE they are present in the final password
 		String upper = RandomStringUtils.randomAlphabetic(2).toUpperCase();
 		String lower = RandomStringUtils.randomAlphabetic(3).toLowerCase();
 		String num = RandomStringUtils.randomNumeric(3);
 		String special = RandomStringUtils.random(2, "!@#$%^&*");
 		
-		// Combines them into a single 10-character string
 		return upper + lower + num + special; 
 	}
 
@@ -163,8 +161,6 @@ public class BaseClass
 		return RandomStringUtils.randomNumeric(10);
 	}
 	
-	
-	
 	public String captureScreen(String tname) throws IOException 
 	{
 	    String timeStamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
@@ -172,14 +168,12 @@ public class BaseClass
 	    TakesScreenshot takesScreenshot = (TakesScreenshot) driver;
 	    File sourceFile = takesScreenshot.getScreenshotAs(OutputType.FILE);
 	    
-	    // Path matches your 'screenshots' folder in the project structure
 	    String targetFilePath = System.getProperty("user.dir") + "\\screenshots\\" + tname + "_" + timeStamp + ".png";
 	    File targetFile = new File(targetFilePath);
 	    
 	    sourceFile.renameTo(targetFile);
 	    return targetFilePath;
 	}
-	
 	
 	@AfterClass(groups = {"Sanity", "Regression", "Master", "DataDriven"})
 	public void tearDown()
