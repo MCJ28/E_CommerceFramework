@@ -14,12 +14,14 @@
 		<suiteXmlFile>master.xml</suiteXmlFile>
 	</properties>
 
+
+
 	<dependencies>
 
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
-			<version>4.41.0</version>
+			<version>4.13.0</version>
 			<scope>compile</scope>
 		</dependency>
 
